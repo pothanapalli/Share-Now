@@ -3,205 +3,318 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="NowShare — Secure, ephemeral, AES-encrypted file sharing. Generate 6-digit access codes and instant QR codes with zero traces." />
-  <title>NowShare — Secure Ephemeral File Transfer</title>
+  <meta name="description" content="NowShare — Ephemeral, encrypted file transfer with 6-digit access codes and scannable QR verification." />
+  <title>NowShare — Ephemeral File Protocol</title>
+  
+  <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
-  <!-- Ambient background glow lights -->
-  <div class="glow-sphere glow-1"></div>
-  <div class="glow-sphere glow-2"></div>
 
-  <!-- Navigation -->
-  <header class="header">
-    <div class="nav-container">
-      <div class="logo">
-        <span class="logo-icon">⚡</span>
-        <span class="logo-text">Now<span class="gradient-text">Share</span></span>
+  <!-- Top Global Navigation Bar -->
+  <header class="site-header">
+    <div class="site-nav">
+      <div class="brand">
+        <a href="/" class="brand-link">
+          <span class="brand-mark">NowShare</span>
+          <span class="brand-spec">PROT_V1.0</span>
+        </a>
       </div>
-      <div class="nav-badges">
-        <div class="security-badge">
-          <span class="badge-dot"></span>
-          <span>AES-256 Encrypted</span>
+      
+      <div class="nav-meta">
+        <div class="protocol-status">
+          <span class="status-indicator"></span>
+          <span class="protocol-label">AES-128-CBC • 10M EXPIRY</span>
         </div>
-        <a href="#contact" class="nav-link-btn">Contact</a>
+        <a href="#contact" class="nav-action-link">Contact</a>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-pill">
-      <span class="sparkle">✨</span>
-      <span>Fast • Zero Trace • Auto-Expiring</span>
-    </div>
-    <h1 class="hero-title">
-      Instant File Sharing, <br />
-      <span class="gradient-text">Encrypted & Ephemeral</span>
-    </h1>
-    <p class="hero-subtitle">
-      Upload your files with client-isolated encryption. Share instantly using a secure 6-digit PIN or a quick-scan QR code. Files automatically self-destruct after 10 minutes.
-    </p>
-  </section>
-
-  <!-- Main Action Cards -->
-  <main class="main-container">
-    <!-- Send Card -->
-    <div class="action-card send-card" id="send">
-      <div class="card-header">
-        <div class="card-icon-wrap send-icon-wrap">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </div>
-        <div>
-          <h2>Send File</h2>
-          <p class="card-desc">Drag & drop or select any file up to 100MB</p>
-        </div>
+  <main class="page-content">
+    
+    <!-- Hero / Header Statement -->
+    <section class="hero-section">
+      <div class="hero-inner">
+        <div class="meta-tag">[ SECURE EPHEMERAL DISPATCH ]</div>
+        <h1 class="hero-headline">
+          Frictionless file exchange.<br />
+          Encrypted, isolated, temporal.
+        </h1>
+        <p class="hero-description">
+          Upload payloads up to 100MB with client-side symmetric encryption. Share access instantly using a one-time 6-digit PIN or verifiable QR code. All storage self-purges after ten minutes.
+        </p>
       </div>
+    </section>
 
-      <!-- Drag and drop zone -->
-      <div class="dropzone" id="dropZone">
-        <input type="file" id="fileInput" class="hidden-file-input" />
-        <div class="dropzone-content" id="dropzonePrompt">
-          <div class="drop-icon-anim">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
-              <path d="M12 12v9"/>
-              <path d="m16 16-4-4-4 4"/>
-            </svg>
-          </div>
-          <p class="dropzone-text"><strong>Choose a file</strong> or drag & drop here</p>
-          <span class="dropzone-hint">Supports all file types (PDF, Images, ZIP, Docs)</span>
-        </div>
-
-        <!-- Selected File Preview Chip -->
-        <div class="file-preview" id="filePreview" style="display: none;">
-          <div class="file-preview-info">
-            <span class="file-icon">📄</span>
-            <div class="file-meta">
-              <span class="file-name" id="previewFileName">filename.ext</span>
-              <span class="file-size" id="previewFileSize">0 KB</span>
+    <!-- Asymmetric Operations Workspace -->
+    <section class="workspace-section">
+      <div class="workspace-grid">
+        
+        <!-- Action 01: Send Payload -->
+        <article class="operation-panel send-panel" id="send">
+          <div class="panel-header">
+            <div class="panel-index">[ 01 ]</div>
+            <div class="panel-title-group">
+              <h2 class="panel-title">Send Payload</h2>
+              <p class="panel-subtitle">Select or drop a local file into the secure staging zone</p>
             </div>
           </div>
-          <button type="button" class="remove-file-btn" id="removeFileBtn" title="Remove file">✕</button>
-        </div>
+
+          <div class="dropzone-area" id="dropZone">
+            <input type="file" id="fileInput" class="accessible-file-input" />
+            
+            <!-- Default Idle State -->
+            <div class="dropzone-prompt" id="dropzonePrompt">
+              <div class="dropzone-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3v12"/>
+                  <path d="m17 8-5-5-5 5"/>
+                  <path d="M2 17v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2"/>
+                </svg>
+              </div>
+              <p class="dropzone-title">Drop payload here, or <span class="dropzone-link">browse filesystem</span></p>
+              <span class="dropzone-specs">Maximum 100MB • Auto-encrypted upon dispatch</span>
+            </div>
+
+            <!-- Staged File Preview State -->
+            <div class="staged-file-card" id="filePreview" style="display: none;">
+              <div class="staged-file-meta">
+                <div class="file-glyph">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <div class="file-text-meta">
+                  <span class="staged-name" id="previewFileName">filename.ext</span>
+                  <span class="staged-size" id="previewFileSize">0 KB</span>
+                </div>
+              </div>
+              <button type="button" class="btn-remove-staged" id="removeFileBtn" aria-label="Remove staged file">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="panel-footer">
+            <button id="uploadBtn" class="btn btn-primary" onclick="uploadFile()">
+              <span>Encrypt & Dispatch</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+            <p id="uploadStatus" class="panel-status-note"></p>
+          </div>
+        </article>
+
+        <!-- Action 02: Receive Payload -->
+        <article class="operation-panel receive-panel" id="Receive">
+          <div class="panel-header">
+            <div class="panel-index">[ 02 ]</div>
+            <div class="panel-title-group">
+              <h2 class="panel-title">Receive Payload</h2>
+              <p class="panel-subtitle">Provide the unique six-digit PIN to claim the file</p>
+            </div>
+          </div>
+
+          <div class="pin-entry-container">
+            <label for="codeInput" class="input-descriptor">ACCESS PIN</label>
+            <div class="pin-input-wrap">
+              <input 
+                type="text" 
+                id="codeInput" 
+                class="pin-field" 
+                placeholder="000000" 
+                maxlength="6" 
+                autocomplete="off" 
+                spellcheck="false"
+              />
+              <button type="button" class="btn-paste-pin" id="pasteBtn" title="Paste from clipboard">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                </svg>
+                <span>Paste</span>
+              </button>
+            </div>
+            <span class="entry-subtext">Alternatively, scan the transmitter's QR code with any mobile camera.</span>
+          </div>
+
+          <div class="panel-footer" id="r1">
+            <button id="downloadBtn" class="btn btn-secondary" onclick="downloadFile()">
+              <span>Retrieve & Decrypt</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Session Transfer Log (History) -->
+    <section id="history" class="history-section">
+      <div class="section-label-bar">
+        <div class="meta-tag">[ 03 / SESSION LOG ]</div>
+        <h3 class="section-heading">Transfer Journal</h3>
       </div>
 
-      <div class="card-action">
-        <button id="uploadBtn" class="btn btn-primary" onclick="uploadFile()">
-          <span class="btn-icon">🔒</span>
-          <span>Encrypt & Share</span>
-        </button>
+      <div id="historyContainer" class="journal-card">
+        <div class="table-responsive">
+          <table class="journal-table">
+            <thead>
+              <tr>
+                <th scope="col">Transmitter Node</th>
+                <th scope="col">Recipient Node</th>
+                <th scope="col">Payload Identifier</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              {% for entry in history %}
+              <tr>
+                <td class="font-mono">{{ entry.sender_ip }}</td>
+                <td class="font-mono">{{ entry.receiver_ip }}</td>
+                <td class="history-filename" title="{{ entry.filename }}">{{ entry.filename }}</td>
+                <td><span class="badge-status-ok">Complete</span></td>
+              </tr>
+              {% else %}
+              <tr id="emptyHistoryRow">
+                <td colspan="4" class="journal-empty">
+                  No transfers registered in the current session journal.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <p id="uploadStatus" class="status-text"></p>
-    </div>
+    </section>
 
-    <!-- Receive Card -->
-    <div class="action-card receive-card" id="Receive">
-      <div class="card-header">
-        <div class="card-icon-wrap receive-icon-wrap">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </div>
-        <div>
-          <h2>Receive File</h2>
-          <p class="card-desc">Enter the 6-digit access code you received</p>
-        </div>
-      </div>
-
-      <div class="receive-body">
-        <div class="code-input-container">
-          <input 
-            type="text" 
-            id="codeInput" 
-            class="code-input" 
-            placeholder="000000" 
-            maxlength="6" 
-            autocomplete="off" 
-            spellcheck="false"
-          />
-          <button type="button" class="paste-btn" id="pasteBtn" title="Paste Code">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-            </svg>
-            <span>Paste</span>
-          </button>
-        </div>
-        <p class="receive-hint">Got a QR code? Scan it directly with your phone camera.</p>
+    <!-- Contact & Feedback Section -->
+    <section class="contact-section" id="contact">
+      <div class="section-label-bar">
+        <div class="meta-tag">[ 04 / INQUIRY ]</div>
+        <h3 class="section-heading">Direct Transmission</h3>
+        <p class="section-subheading">Send notes, reports, or questions to the server administrator.</p>
       </div>
 
-      <div class="card-action" id="r1">
-        <button id="downloadBtn" class="btn btn-secondary" onclick="downloadFile()">
-          <span class="btn-icon">⬇️</span>
-          <span>Decrypt & Download</span>
-        </button>
+      <div class="contact-card">
+        <form class="contact-form" id="contact-form">
+          <div class="form-grid-row">
+            <div class="form-field">
+              <label for="contactName">Name</label>
+              <input type="text" id="contactName" name="name" placeholder="Full name or alias" required />
+            </div>
+            <div class="form-field">
+              <label for="contactPhone">Telephone</label>
+              <input type="tel" id="contactPhone" name="phone" placeholder="+1 (000) 000-0000" required />
+            </div>
+          </div>
+          
+          <div class="form-field">
+            <label for="contactEmail">Electronic Mail</label>
+            <input type="email" id="contactEmail" name="email" placeholder="address@domain.com" required />
+          </div>
+
+          <div class="form-field">
+            <label for="contactMessage">Message Text</label>
+            <textarea id="contactMessage" name="message" rows="4" placeholder="Brief statement of inquiry..." required></textarea>
+          </div>
+
+          <div class="form-submit-row">
+            <button type="submit" class="btn btn-primary btn-submit">
+              <span>Transmit Message</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+        <div id="response-message" class="form-feedback-note"></div>
       </div>
-    </div>
+    </section>
+
   </main>
 
-  <!-- Modal Overlay -->
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="footer-title">NowShare Protocol</span>
+        <p class="footer-copy">Designed with architectural clarity and visual restraint. Ephemeral file pipeline.</p>
+      </div>
+      <div class="footer-meta">
+        <span class="end">Encrypted Storage • Auto-Pruning Engine</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal Backdrop -->
   <div id="overlay" onclick="hideScanPopup()"></div>
 
-  <!-- Upload / Download Progress Popup -->
-  <div id="uploadPopup" class="modal-card">
-    <div class="modal-body text-center">
-      <div id="progressContainer">
-        <svg id="progressCircle" width="110" height="110" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="none"/>
-          <circle id="progressBar" cx="50" cy="50" r="42" stroke="url(#progressGrad)" stroke-width="8" fill="none"
-                  stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"/>
-          <defs>
-            <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#6366f1" />
-              <stop offset="100%" stop-color="#06b6d4" />
-            </linearGradient>
-          </defs>
-          <text id="progressText" x="50%" y="54%" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff">0%</text>
-        </svg>
-        <p class="popup-title">Encrypting & Uploading...</p>
-        <p class="popup-subtitle">Securing payload with AES-256 cipher</p>
+  <!-- Upload Progress Dialogue -->
+  <div id="uploadPopup" class="editorial-dialog">
+    <div class="dialog-content">
+      <div id="progressContainer" class="progress-wrap">
+        <div class="progress-indicator-box">
+          <svg id="progressCircle" width="80" height="80" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" stroke="var(--surface-secondary)" stroke-width="6" fill="none"/>
+            <circle id="progressBar" cx="50" cy="50" r="42" stroke="var(--color-accent)" stroke-width="6" fill="none"
+                    stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"/>
+          </svg>
+          <span id="progressText" class="progress-percentage">0%</span>
+        </div>
+        <h4 class="dialog-title">Encrypting Payload</h4>
+        <p class="dialog-detail">Applying AES cipher and staging encrypted blocks...</p>
       </div>
+
       <div id="successTick" style="display: none;">
-        <div class="success-icon-wrap">
-          <svg width="48" height="48" viewBox="0 0 52 52">
-            <circle cx="26" cy="26" r="24" fill="none" stroke="#10b981" stroke-width="4"/>
-            <path fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14 27l8 8 16-16"/>
+        <div class="success-glyph-box">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
         </div>
-        <p class="popup-title">File Ready!</p>
+        <h4 class="dialog-title">Payload Secured</h4>
+        <p class="dialog-detail">Generating access PIN and visual token...</p>
       </div>
     </div>
   </div>
 
-  <!-- QR Code & Code Share Modal -->
-  <div id="scan" class="modal-card qr-modal">
-    <button class="modal-close-btn" onclick="hideScanPopup()" title="Close">✕</button>
-    <div id="qrCodeSection" class="modal-body text-center">
-      <div class="qr-pill">
-        <span>Ready to Share</span>
-      </div>
-      <h3 class="modal-title">Scan or Use Code</h3>
+  <!-- QR Access Verification Modal -->
+  <div id="scan" class="editorial-dialog qr-dialog">
+    <button class="dialog-close-trigger" onclick="hideScanPopup()" aria-label="Close dialogue">✕</button>
+    <div id="qrCodeSection" class="dialog-inner-layout">
       
-      <div class="qr-wrapper">
-        <img id="qrCodeImage" src="" alt="Share QR Code" />
+      <div class="qr-dialog-header">
+        <span class="meta-tag">[ ACCESS CREDENTIALS ]</span>
+        <h3 class="dialog-title">Payload Ready for Retrieval</h3>
       </div>
 
-      <div class="code-display-box">
-        <span class="code-label">TRANSFER CODE</span>
-        <div class="code-number-wrap">
-          <span id="transferCode" class="code-digits">------</span>
-          <button id="copyCodeButton" class="copy-icon-btn" onclick="copyCode()" title="Copy Code">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="qr-visual-frame">
+        <img id="qrCodeImage" src="" alt="Verification QR Code" />
+      </div>
+
+      <div class="credential-box">
+        <span class="credential-label">DISPATCH PIN</span>
+        <div class="credential-pin-row">
+          <span id="transferCode" class="credential-digits">------</span>
+          <button id="copyCodeButton" class="btn-copy-code" onclick="copyCode()" title="Copy PIN">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
               <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
             </svg>
@@ -209,97 +322,23 @@
         </div>
       </div>
 
-      <div class="modal-actions">
+      <div class="dialog-action-bar">
         <button id="shareBtn" class="btn btn-secondary btn-sm">
-          <span>📤 Share Link / QR</span>
+          <span>Share Transmission URL</span>
         </button>
       </div>
 
-      <div class="expiry-banner">
-        <span class="timer-icon">⏱️</span>
+      <div class="expiry-row">
+        <span class="expiry-dot"></span>
         <span id="expiryTime">Expires in 10:00</span>
       </div>
-      <p id="encryptionMessage" class="encryption-note">🔒 Encrypted with Fernet (AES-128-CBC)</p>
+      
+      <p id="encryptionMessage" class="security-caption">Encrypted via cryptography.Fernet (AES-128-CBC with HMAC-SHA256)</p>
     </div>
   </div>
 
-  <!-- History Section -->
-  <section id="history" class="history-section">
-    <div class="section-heading">
-      <div class="section-badge">Recent Activity</div>
-      <h2>Transfer History</h2>
-      <p>Files transferred during this session</p>
-    </div>
-
-    <div id="historyContainer" class="history-table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Sender</th>
-            <th>Receiver</th>
-            <th>File Name</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="historyTableBody">
-          {% for entry in history %}
-          <tr>
-            <td><span class="ip-tag">{{ entry.sender_ip }}</span></td>
-            <td><span class="ip-tag">{{ entry.receiver_ip }}</span></td>
-            <td class="history-filename">{{ entry.filename }}</td>
-            <td><span class="status-badge-done">Completed</span></td>
-          </tr>
-          {% else %}
-          <tr id="emptyHistoryRow">
-            <td colspan="4" class="empty-history">
-              <span class="empty-icon">📂</span>
-              <p>No transfers recorded in this session yet.</p>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Contact Footer -->
-  <footer class="contact-container">
-    <div class="contact-footer" id="contact">
-      <div class="section-badge">Get in Touch</div>
-      <h2>Contact & Feedback</h2>
-      <p class="contact-desc">Have suggestions or found an issue? Send a direct note.</p>
-
-      <form class="contact-form" id="contact-form">
-        <div class="form-row">
-          <div class="input-group">
-            <label for="contactName">Your Name</label>
-            <input type="text" id="contactName" name="name" placeholder="Alex Morgan" required />
-          </div>
-          <div class="input-group">
-            <label for="contactPhone">Mobile Number</label>
-            <input type="tel" id="contactPhone" name="phone" placeholder="+1 (555) 000-0000" required />
-          </div>
-        </div>
-        <div class="input-group">
-          <label for="contactEmail">Email Address</label>
-          <input type="email" id="contactEmail" name="email" placeholder="alex@example.com" required />
-        </div>
-        <div class="input-group">
-          <label for="contactMessage">Message</label>
-          <textarea id="contactMessage" name="message" placeholder="Write your message here..." required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary contact-submit-btn">
-          <span>Send Message</span>
-          <span class="btn-arrow">→</span>
-        </button>
-      </form>
-      <div id="response-message" class="response-msg"></div>
-      <div class="end">Built with security & privacy • NowShare</div>
-    </div>
-  </footer>
-
-  <!-- Toast Notification Container -->
-  <div id="toastContainer" class="toast-container"></div>
+  <!-- Toast Notification Deck -->
+  <div id="toastContainer" class="toast-deck"></div>
 
   <script src="/static/js/script.js"></script>
 </body>

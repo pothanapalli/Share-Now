@@ -1,11 +1,11 @@
 // ==========================================================================
-// NowShare — Frontend Logic & Interactions
+// NowShare — Client Interaction & Communication Engine
 // ==========================================================================
 
 let countdownInterval = null;
 
 // --------------------------------------------------------------------------
-// Toast Notification Utility
+// Editorial Toast Notification System
 // --------------------------------------------------------------------------
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
@@ -14,22 +14,22 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
 
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'error') icon = '⚠️';
+    const iconSvg = type === 'error'
+        ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+        : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    toast.innerHTML = `<span class="toast-icon">${iconSvg}</span><span>${escapeHtml(message)}</span>`;
     container.appendChild(toast);
 
     setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(50px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3500);
+        toast.style.transform = 'translateY(8px)';
+        setTimeout(() => toast.remove(), 250);
+    }, 3800);
 }
 
 // --------------------------------------------------------------------------
-// File Format Helpers
+// Byte Formatter
 // --------------------------------------------------------------------------
 function formatBytes(bytes, decimals = 1) {
     if (bytes === 0) return '0 Bytes';
@@ -41,7 +41,7 @@ function formatBytes(bytes, decimals = 1) {
 }
 
 // --------------------------------------------------------------------------
-// Dropzone & File Preview Interactivity
+// Dropzone Staging & File Preview Handling
 // --------------------------------------------------------------------------
 function initDropzone() {
     const dropZone = document.getElementById('dropZone');
@@ -54,7 +54,6 @@ function initDropzone() {
 
     if (!dropZone || !fileInput) return;
 
-    // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, (e) => {
             e.preventDefault();
@@ -62,7 +61,6 @@ function initDropzone() {
         }, false);
     });
 
-    // Highlight dropzone on drag over
     ['dragenter', 'dragover'].forEach(eventName => {
         dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-active'), false);
     });
@@ -71,7 +69,6 @@ function initDropzone() {
         dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-active'), false);
     });
 
-    // Handle dropped files
     dropZone.addEventListener('drop', (e) => {
         const dt = e.dataTransfer;
         if (dt.files && dt.files.length) {
@@ -80,21 +77,20 @@ function initDropzone() {
         }
     });
 
-    // Handle standard file picker selection
-    fileInput.addEventListener('change', (e) => {
+    fileInput.addEventListener('change', () => {
         if (fileInput.files && fileInput.files.length) {
             handleFileSelect(fileInput.files[0]);
         }
     });
 
-    // Remove selected file
     if (removeFileBtn) {
         removeFileBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             fileInput.value = '';
             filePreview.style.display = 'none';
             dropzonePrompt.style.display = 'block';
-            document.getElementById('uploadStatus').textContent = '';
+            const statusEl = document.getElementById('uploadStatus');
+            if (statusEl) statusEl.textContent = '';
         });
     }
 
@@ -104,19 +100,20 @@ function initDropzone() {
         previewFileSize.textContent = formatBytes(file.size);
         dropzonePrompt.style.display = 'none';
         filePreview.style.display = 'flex';
-        document.getElementById('uploadStatus').textContent = '';
+        const statusEl = document.getElementById('uploadStatus');
+        if (statusEl) statusEl.textContent = '';
     }
 }
 
 // --------------------------------------------------------------------------
-// Upload Flow
+// Payload Encryption & Dispatch
 // --------------------------------------------------------------------------
 async function uploadFile() {
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
 
     if (!fileInput.files.length) {
-        showToast('Please select or drop a file to upload.', 'error');
+        showToast('Please stage a payload to dispatch.', 'error');
         return;
     }
 
@@ -127,14 +124,17 @@ async function uploadFile() {
     const progressText = document.getElementById('progressText');
     const overlay = document.getElementById('overlay');
 
-    // Show upload progress modal
-    overlay.style.display = 'block';
-    setTimeout(() => overlay.classList.add('show'), 10);
+    // Open progress dialogue
+    if (overlay) {
+        overlay.style.display = 'block';
+        setTimeout(() => overlay.classList.add('show'), 10);
+    }
+    if (uploadPopup) {
+        uploadPopup.style.display = 'block';
+        setTimeout(() => uploadPopup.classList.add('show'), 10);
+    }
 
-    uploadPopup.style.display = 'block';
-    setTimeout(() => uploadPopup.classList.add('show'), 10);
-
-    progressContainer.style.display = 'block';
+    if (progressContainer) progressContainer.style.display = 'block';
     if (successTick) successTick.style.display = 'none';
     if (progressBar) progressBar.style.strokeDashoffset = '264';
     if (progressText) progressText.textContent = '0%';
@@ -163,24 +163,25 @@ async function uploadFile() {
                     try {
                         const data = JSON.parse(xhr.responseText);
 
-                        // Show success tick briefly
-                        progressContainer.style.display = 'none';
+                        if (progressContainer) progressContainer.style.display = 'none';
                         if (successTick) successTick.style.display = 'block';
 
                         setTimeout(() => {
-                            uploadPopup.classList.remove('show');
+                            if (uploadPopup) uploadPopup.classList.remove('show');
                             setTimeout(() => {
-                                uploadPopup.style.display = 'none';
-                            }, 200);
+                                if (uploadPopup) uploadPopup.style.display = 'none';
+                            }, 180);
 
-                            // Populate and show QR Code modal
-                            document.getElementById('transferCode').innerText = data.code;
-                            document.getElementById('qrCodeImage').src = data.qr_code_url;
-                            startCountdown(600); // 10 minutes
+                            const codeEl = document.getElementById('transferCode');
+                            const qrEl = document.getElementById('qrCodeImage');
+                            if (codeEl) codeEl.innerText = data.code;
+                            if (qrEl) qrEl.src = data.qr_code_url;
+
+                            startCountdown(600);
                             updateHistory();
                             showScanPopup();
-                            showToast('File encrypted & ready to share!', 'success');
-                        }, 700);
+                            showToast('Payload encrypted and staged.', 'success');
+                        }, 600);
 
                     } catch (parseError) {
                         closeAllModals();
@@ -205,12 +206,12 @@ async function uploadFile() {
     } catch (error) {
         if (uploadBtn) uploadBtn.disabled = false;
         closeAllModals();
-        showToast('Upload error: ' + error, 'error');
+        showToast('Upload failed: ' + error, 'error');
     }
 }
 
 // --------------------------------------------------------------------------
-// Download Flow
+// Payload Retrieval & Decryption
 // --------------------------------------------------------------------------
 async function downloadFile() {
     const codeInput = document.getElementById('codeInput');
@@ -218,7 +219,7 @@ async function downloadFile() {
     const code = (codeInput ? codeInput.value : '').trim();
 
     if (!code || code.length !== 6) {
-        showToast('Please enter a valid 6-digit access code.', 'error');
+        showToast('Specify a valid 6-digit access PIN.', 'error');
         if (codeInput) codeInput.focus();
         return;
     }
@@ -226,13 +227,13 @@ async function downloadFile() {
     const originalBtnText = downloadBtn ? downloadBtn.innerHTML : '';
     if (downloadBtn) {
         downloadBtn.disabled = true;
-        downloadBtn.innerHTML = '<span>⏳ Decrypting...</span>';
+        downloadBtn.innerHTML = '<span>Decrypting Payload...</span>';
     }
 
     try {
         const response = await fetch(`/download/${code}`);
         if (!response.ok) {
-            let errorMsg = 'Invalid access code or file expired.';
+            let errorMsg = 'Invalid PIN or payload has expired.';
             try {
                 const errData = await response.json();
                 errorMsg = errData.error || errorMsg;
@@ -241,8 +242,7 @@ async function downloadFile() {
             return;
         }
 
-        // Extract filename from Content-Disposition header
-        let filename = 'downloaded_file';
+        let filename = 'retrieved_payload';
         const disposition = response.headers.get('Content-Disposition');
         if (disposition && disposition.includes('filename=')) {
             filename = disposition.split('filename=')[1].replace(/["']/g, '').trim();
@@ -258,12 +258,12 @@ async function downloadFile() {
         a.remove();
         window.URL.revokeObjectURL(url);
 
-        showToast(`Downloaded: ${filename}`, 'success');
+        showToast(`Retrieved: ${filename}`, 'success');
         updateHistory();
         if (codeInput) codeInput.value = '';
 
     } catch (error) {
-        showToast('Download error. Please try again.', 'error');
+        showToast('Retrieval error. Please try again.', 'error');
         console.error('Download error:', error);
     } finally {
         if (downloadBtn) {
@@ -274,7 +274,7 @@ async function downloadFile() {
 }
 
 // --------------------------------------------------------------------------
-// Modal Show / Hide
+// Modal Show / Close Logic
 // --------------------------------------------------------------------------
 function showScanPopup() {
     const overlay = document.getElementById('overlay');
@@ -307,11 +307,11 @@ function closeAllModals() {
         if (scanModal) scanModal.style.display = 'none';
         if (uploadPopup) uploadPopup.style.display = 'none';
         if (overlay) overlay.style.display = 'none';
-    }, 250);
+    }, 200);
 }
 
 // --------------------------------------------------------------------------
-// Copy Code to Clipboard
+// Copy Access PIN
 // --------------------------------------------------------------------------
 function copyCode() {
     const codeElement = document.getElementById('transferCode');
@@ -321,34 +321,40 @@ function copyCode() {
     const code = codeElement.innerText.trim();
     if (!code || code === '------') return;
 
+    const originalIcon = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+        </svg>`;
+
+    const checkIcon = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>`;
+
     navigator.clipboard.writeText(code).then(() => {
         if (copyButton) {
             copyButton.classList.add('copied');
-            copyButton.innerHTML = '✓';
+            copyButton.innerHTML = checkIcon;
             setTimeout(() => {
                 copyButton.classList.remove('copied');
-                copyButton.innerHTML = `
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                  </svg>`;
+                copyButton.innerHTML = originalIcon;
             }, 2000);
         }
-        showToast(`Code ${code} copied to clipboard!`, 'success');
-    }).catch(err => {
-        // Fallback
+        showToast(`PIN ${code} copied to clipboard.`, 'success');
+    }).catch(() => {
         const textarea = document.createElement('textarea');
         textarea.value = code;
         document.body.appendChild(textarea);
         textarea.select();
         document.execCommand('copy');
         textarea.remove();
-        showToast(`Code ${code} copied!`, 'success');
+        showToast(`PIN ${code} copied.`, 'success');
     });
 }
 
 // --------------------------------------------------------------------------
-// Quick Paste Code Helper
+// Quick Paste Pin Helper
 // --------------------------------------------------------------------------
 function initPasteButton() {
     const pasteBtn = document.getElementById('pasteBtn');
@@ -362,22 +368,21 @@ function initPasteButton() {
             const cleanCode = text.replace(/\D/g, '').slice(0, 6);
             if (cleanCode.length === 6) {
                 codeInput.value = cleanCode;
-                showToast('Code pasted!', 'info');
+                showToast(`PIN ${cleanCode} pasted.`, 'info');
                 codeInput.focus();
             } else if (cleanCode.length > 0) {
                 codeInput.value = cleanCode;
                 codeInput.focus();
             } else {
-                showToast('No 6-digit code found in clipboard.', 'error');
+                showToast('Clipboard does not contain numerical digits.', 'error');
             }
         } catch (_) {
             codeInput.focus();
-            showToast('Press Ctrl + V to paste.', 'info');
+            showToast('Use Ctrl + V to paste PIN directly.', 'info');
         }
     });
 
-    // Restrict input to numbers only
-    codeInput.addEventListener('input', (e) => {
+    codeInput.addEventListener('input', () => {
         codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
         if (codeInput.value.length === 6) {
             downloadFile();
@@ -386,21 +391,20 @@ function initPasteButton() {
 }
 
 // --------------------------------------------------------------------------
-// Web Share API
+// Share Action
 // --------------------------------------------------------------------------
 async function shareQRCode() {
     const code = document.getElementById('transferCode').innerText.trim();
-    const qrImage = document.getElementById('qrCodeImage').src;
     const shareUrl = `${window.location.origin}/?code=${code}`;
 
     if (navigator.share) {
         try {
             await navigator.share({
-                title: 'NowShare — File Transfer',
-                text: `Download my file on NowShare using 6-digit code: ${code}`,
+                title: 'NowShare — Ephemeral Payload',
+                text: `Retrieve payload via NowShare PIN: ${code}`,
                 url: shareUrl
             });
-            showToast('Shared successfully!', 'success');
+            showToast('Dispatched share request.', 'success');
         } catch (err) {
             if (err.name !== 'AbortError') {
                 copyShareLink(shareUrl);
@@ -413,14 +417,14 @@ async function shareQRCode() {
 
 function copyShareLink(url) {
     navigator.clipboard.writeText(url).then(() => {
-        showToast('Direct download link copied to clipboard!', 'success');
+        showToast('Retrieval URL copied to clipboard.', 'success');
     }).catch(() => {
         showToast(url, 'info');
     });
 }
 
 // --------------------------------------------------------------------------
-// Countdown Timer
+// Expiry Countdown
 // --------------------------------------------------------------------------
 function startCountdown(durationInSeconds) {
     const expiryElement = document.getElementById('expiryTime');
@@ -437,8 +441,8 @@ function startCountdown(durationInSeconds) {
 
         if (remaining <= 0) {
             clearInterval(countdownInterval);
-            expiryElement.textContent = 'Expired (File automatically purged)';
-            expiryElement.style.color = '#ef4444';
+            expiryElement.textContent = 'Payload Expired (Storage purged)';
+            expiryElement.style.color = '#c2410c';
         }
         remaining--;
     }
@@ -448,7 +452,7 @@ function startCountdown(durationInSeconds) {
 }
 
 // --------------------------------------------------------------------------
-// Transfer History Fetcher
+// Transfer History Updates
 // --------------------------------------------------------------------------
 async function updateHistory() {
     try {
@@ -462,9 +466,8 @@ async function updateHistory() {
         if (!historyData || historyData.length === 0) {
             tbody.innerHTML = `
                 <tr id="emptyHistoryRow">
-                  <td colspan="4" class="empty-history">
-                    <span class="empty-icon">📂</span>
-                    <p>No transfers recorded in this session yet.</p>
+                  <td colspan="4" class="journal-empty">
+                    No transfers registered in the current session journal.
                   </td>
                 </tr>`;
             return;
@@ -474,15 +477,15 @@ async function updateHistory() {
         historyData.forEach(entry => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><span class="ip-tag">${escapeHtml(entry.sender_ip || 'Unknown')}</span></td>
-                <td><span class="ip-tag">${escapeHtml(entry.receiver_ip || 'Pending')}</span></td>
-                <td class="history-filename" title="${escapeHtml(entry.filename || '')}">${escapeHtml(entry.filename || 'file')}</td>
-                <td><span class="status-badge-done">Completed</span></td>
+                <td class="font-mono">${escapeHtml(entry.sender_ip || 'Internal')}</td>
+                <td class="font-mono">${escapeHtml(entry.receiver_ip || 'Pending')}</td>
+                <td class="history-filename" title="${escapeHtml(entry.filename || '')}">${escapeHtml(entry.filename || 'payload')}</td>
+                <td><span class="badge-status-ok">Complete</span></td>
             `;
             tbody.appendChild(row);
         });
     } catch (error) {
-        console.error('Failed to update transfer history:', error);
+        console.error('Failed to update journal history:', error);
     }
 }
 
@@ -495,7 +498,7 @@ function escapeHtml(str) {
 }
 
 // --------------------------------------------------------------------------
-// Contact Form Submission
+// Contact Form Handler
 // --------------------------------------------------------------------------
 function initContactForm() {
     const form = document.getElementById('contact-form');
@@ -506,7 +509,7 @@ function initContactForm() {
 
         const responseMsg = document.getElementById('response-message');
         const submitBtn = form.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Send Message';
+        const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Transmit Message';
 
         const fd = new FormData(form);
         const formData = {
@@ -517,12 +520,12 @@ function initContactForm() {
         };
 
         if (responseMsg) {
-            responseMsg.innerText = 'Submitting message...';
+            responseMsg.innerText = 'Transmitting message...';
             responseMsg.style.color = 'var(--text-muted)';
         }
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Sending...</span>';
+            submitBtn.innerHTML = '<span>Transmitting...</span>';
         }
 
         try {
@@ -536,27 +539,27 @@ function initContactForm() {
             try {
                 result = await res.json();
             } catch (_) {
-                result = { message: res.ok ? 'Message sent successfully!' : `Server error (${res.status})` };
+                result = { message: res.ok ? 'Message transmitted successfully.' : `Server returned code ${res.status}` };
             }
 
             if (responseMsg) {
-                responseMsg.innerText = result.message || (res.ok ? 'Message sent successfully!' : 'Submission failed.');
-                responseMsg.style.color = res.ok ? '#34d399' : '#ef4444';
+                responseMsg.innerText = result.message || (res.ok ? 'Message transmitted successfully.' : 'Transmission rejected.');
+                responseMsg.style.color = res.ok ? 'var(--color-accent)' : '#c2410c';
             }
 
             if (res.ok) {
                 form.reset();
-                showToast('Contact message sent successfully!', 'success');
+                showToast('Inquiry transmission recorded.', 'success');
             } else {
-                showToast(result.message || 'Submission failed.', 'error');
+                showToast(result.message || 'Transmission failed.', 'error');
             }
         } catch (err) {
             console.error('Contact form submission error:', err);
             if (responseMsg) {
-                responseMsg.innerText = 'Connection error: Unable to reach the server. Please try again.';
-                responseMsg.style.color = '#ef4444';
+                responseMsg.innerText = 'Unable to connect to gateway. Please try again.';
+                responseMsg.style.color = '#c2410c';
             }
-            showToast('Unable to connect to server.', 'error');
+            showToast('Unable to reach server.', 'error');
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
@@ -567,7 +570,7 @@ function initContactForm() {
 }
 
 // --------------------------------------------------------------------------
-// Auto-fill Code from URL (?code=123456)
+// Auto-Fill Code (?code=000000)
 // --------------------------------------------------------------------------
 function autoFillCodeFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -576,18 +579,17 @@ function autoFillCodeFromURL() {
         const receiveInput = document.getElementById('codeInput');
         if (receiveInput) {
             receiveInput.value = code;
-            showToast(`Loaded access code: ${code}`, 'info');
-            // Smoothly scroll down to receive section
+            showToast(`Loaded PIN: ${code}`, 'info');
             const receiveCard = document.getElementById('Receive');
             if (receiveCard) {
-                setTimeout(() => receiveCard.scrollIntoView({ behavior: 'smooth' }), 500);
+                setTimeout(() => receiveCard.scrollIntoView({ behavior: 'smooth' }), 400);
             }
         }
     }
 }
 
 // --------------------------------------------------------------------------
-// Initialize Everything on Load
+// DOM Initialization
 // --------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', function () {
     initDropzone();
@@ -596,13 +598,11 @@ document.addEventListener('DOMContentLoaded', function () {
     autoFillCodeFromURL();
     updateHistory();
 
-    // Share QR button
     const shareBtn = document.getElementById('shareBtn');
     if (shareBtn) {
         shareBtn.addEventListener('click', shareQRCode);
     }
 
-    // Escape key to close modals
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeAllModals();
