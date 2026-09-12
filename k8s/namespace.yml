@@ -1,7 +1,0 @@
-# NowShare Kubernetes Namespace
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: nowshare
-  labels:
-    app: nowshare

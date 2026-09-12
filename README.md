@@ -39,7 +39,6 @@ nowshare/
 ├── .env.example        # Template for .env
 ├── .gitignore          # Git ignore rules
 ├── Procfile            # Render/Railway startup command
-├── Dockerfile          # Docker container config
 ├── test_app.py         # Test suite
 ├── static/
 │   ├── css/style.css   # Stylesheet
@@ -128,15 +127,7 @@ python test_app.py
 
 ---
 
-## 🐳 Docker
-
-```bash
-docker build -t nowshare .
-docker run -p 10000:10000 --env-file .env nowshare
-```
-
----
-
 ## 📝 License
 
 This project is for educational purposes.
+

@@ -6,6 +6,7 @@ import time
 import threading
 from io import BytesIO
 import base64
+import socket
 
 from flask import Flask, render_template, request, jsonify, send_file
 from cryptography.fernet import Fernet
@@ -13,7 +14,6 @@ import qrcode
 from werkzeug.utils import secure_filename
 from pymongo import MongoClient
 from dotenv import load_dotenv
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 import certifi
 
 
@@ -79,10 +79,36 @@ def generate_code():
     raise RuntimeError("Could not generate a unique code after 100 attempts")
 
 
+def get_lan_ip():
+    """Retrieve primary LAN IP so mobile devices on the same Wi-Fi can connect."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        try:
+            return socket.gethostbyname(socket.gethostname())
+        except Exception:
+            return '127.0.0.1'
+
+
 def generate_qr_code(code):
     """Generate a QR code containing the download URL as a base64 data-URI."""
-    # Build the URL dynamically based on the current request
-    base_url = request.host_url.rstrip('/')
+    custom_base_url = os.environ.get('BASE_URL', '').rstrip('/')
+    if custom_base_url:
+        base_url = custom_base_url
+    else:
+        # Build the URL dynamically based on the current request
+        base_url = request.host_url.rstrip('/')
+        # When accessed from localhost or 127.0.0.1, use LAN IP so mobile phones scanning the QR code can connect
+        for local_name in ('localhost', '127.0.0.1'):
+            if local_name in base_url:
+                lan_ip = get_lan_ip()
+                base_url = base_url.replace(local_name, lan_ip)
+                break
+
     url_with_code = f"{base_url}/?code={code}"
 
     img = qrcode.make(url_with_code)
@@ -129,84 +155,12 @@ def start_cleanup_scheduler():
 # Start the cleanup scheduler
 start_cleanup_scheduler()
 
-# ---------------------------------------------------------------------------
-# Prometheus Metrics
-# ---------------------------------------------------------------------------
-REQUEST_COUNT = Counter(
-    'flask_http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status']
-)
-
-REQUEST_LATENCY = Histogram(
-    'flask_http_request_duration_seconds',
-    'HTTP request latency in seconds',
-    ['method', 'endpoint']
-)
-
-ERROR_COUNT = Counter(
-    'flask_http_errors_total',
-    'Total HTTP errors (4xx and 5xx)',
-    ['method', 'endpoint', 'status']
-)
-
-# App info gauge — exposes version/name as labels (value is always 1)
-APP_INFO = Gauge(
-    'flask_app_info',
-    'Application metadata',
-    ['app_name', 'version']
-)
-APP_INFO.labels(app_name='nowshare', version='1.0.0').set(1)
-
-
-@app.before_request
-def _start_timer():
-    request._prom_start_time = time.time()
-
-
-@app.after_request
-def _record_metrics(response):
-    if request.path in ('/metrics', '/health'):  # Don't track internal endpoints
-        return response
-
-    latency = time.time() - getattr(request, '_prom_start_time', time.time())
-    endpoint = request.path
-
-    REQUEST_COUNT.labels(
-        method=request.method,
-        endpoint=endpoint,
-        status=response.status_code
-    ).inc()
-
-    REQUEST_LATENCY.labels(
-        method=request.method,
-        endpoint=endpoint
-    ).observe(latency)
-
-    # Track errors (4xx and 5xx)
-    if response.status_code >= 400:
-        ERROR_COUNT.labels(
-            method=request.method,
-            endpoint=endpoint,
-            status=response.status_code
-        ).inc()
-
-    return response
-
-
-@app.route('/metrics')
-def metrics():
-    """Prometheus metrics endpoint."""
-    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
-
-
 @app.route('/health')
 def health():
-    """Health check endpoint for Docker/Kubernetes."""
+    """Simple health check endpoint."""
     return jsonify({
         'status': 'healthy',
-        'app': 'nowshare',
-        'version': '1.0.0'
+        'app': 'nowshare'
     }), 200
 
 
