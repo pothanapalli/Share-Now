@@ -33,26 +33,48 @@ logger = logging.getLogger(__name__)
 
 # MongoDB
 MONGO_URI = os.environ.get('MONGO_URI')
-if MONGO_URI:
+_mongo_client = None
+_contact_collection = None
+
+
+def get_contact_collection():
+    """Get or reconnect to the MongoDB contacts collection."""
+    global _mongo_client, _contact_collection
+    if _contact_collection is not None:
+        try:
+            _mongo_client.admin.command('ping')
+            return _contact_collection
+        except Exception:
+            logger.warning("MongoDB ping failed, reconnecting...")
+            _mongo_client = None
+            _contact_collection = None
+
+    if not MONGO_URI:
+        logger.warning("MONGO_URI not set. Contact form will be disabled.")
+        return None
+
     try:
-        client = MongoClient(
+        _mongo_client = MongoClient(
             MONGO_URI,
-            serverSelectionTimeoutMS=10000,
-            connectTimeoutMS=10000,
-            socketTimeoutMS=10000,
+            serverSelectionTimeoutMS=15000,
+            connectTimeoutMS=15000,
+            socketTimeoutMS=15000,
             tlsCAFile=certifi.where(),
-            tlsAllowInvalidCertificates=True,
             retryWrites=True
         )
-        db = client["nowshare_db"]
-        contact_collection = db["contacts"]
-        logger.info("MongoDB connected successfully.")
+        db = _mongo_client["nowshare_db"]
+        _contact_collection = db["contacts"]
+        logger.info("MongoDB client connected successfully.")
+        return _contact_collection
     except Exception as e:
-        logger.warning(f"MongoDB connection failed: {e}. Contact form will be disabled.")
-        contact_collection = None
-else:
-    logger.warning("MONGO_URI not set. Contact form will be disabled.")
-    contact_collection = None
+        logger.error(f"MongoDB connection failed: {e}")
+        _mongo_client = None
+        _contact_collection = None
+        return None
+
+
+# Initial connection attempt on startup
+get_contact_collection()
 
 # File storage
 UPLOAD_FOLDER = 'uploads'
@@ -289,10 +311,6 @@ def get_history():
 
 @app.route('/submit_contact', methods=['POST'])
 def submit_contact():
-    if contact_collection is None:
-        logger.warning("Contact submission failed: MongoDB collection unavailable")
-        return jsonify({"message": "Contact form is currently unavailable. Database not connected."}), 503
-
     data = request.get_json(silent=True)
 
     if not data:
@@ -319,20 +337,32 @@ def submit_contact():
         logger.warning(f"Contact submission invalid email: {email}")
         return jsonify({"message": "Please enter a valid email address."}), 400
 
-    try:
-        doc = {
-            "name": name,
-            "phone": phone,
-            "email": email,
-            "message": message,
-            "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        contact_collection.insert_one(doc)
-        logger.info(f"Contact form submitted successfully by {name} ({email})")
-        return jsonify({"message": "Contact submitted successfully!"}), 200
-    except Exception as e:
-        logger.error(f"Contact form database insert error: {e}", exc_info=True)
-        return jsonify({"message": f"Submission failed: {str(e)}"}), 500
+    doc = {
+        "name": name,
+        "phone": phone,
+        "email": email,
+        "message": message,
+        "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    # Attempt insert with 1 retry in case of transient Atlas replica election or SSL timeout
+    last_error = None
+    for attempt in range(2):
+        col = get_contact_collection()
+        if col is None:
+            return jsonify({"message": "Database is temporarily unreachable. Please check your internet or try again."}), 503
+
+        try:
+            col.insert_one(doc)
+            logger.info(f"Contact form submitted successfully by {name} ({email})")
+            return jsonify({"message": "Contact submitted successfully!"}), 200
+        except Exception as e:
+            last_error = e
+            logger.warning(f"Database insert attempt {attempt + 1} failed: {e}")
+            time.sleep(1)
+
+    logger.error(f"Contact form database insert error after retries: {last_error}", exc_info=True)
+    return jsonify({"message": "Could not connect to database. If this persists, ensure your current IP is allowed in MongoDB Atlas Network Access."}), 500
 
 
 
