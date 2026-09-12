@@ -5,3 +5,6 @@ __pycache__/
 *.pyc
 *.pyo
 .DS_Store
+THEORETICAL_EXPLANATION.md
+PRACTICAL_EXPLANATION.md
+
