@@ -285,14 +285,27 @@ function initContactForm() {
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
+        const responseMsg = document.getElementById('response-message');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.innerText : 'Submit';
+
+        // Extract inputs safely using FormData
+        const fd = new FormData(form);
         const formData = {
-            name: form.name.value,
-            phone: form.phone.value,
-            email: form.email.value,
-            message: form.message.value
+            name: (fd.get('name') || '').trim(),
+            phone: (fd.get('phone') || '').trim(),
+            email: (fd.get('email') || '').trim(),
+            message: (fd.get('message') || '').trim()
         };
 
-        const responseMsg = document.getElementById('response-message');
+        if (responseMsg) {
+            responseMsg.innerText = 'Submitting message...';
+            responseMsg.style.color = '#555';
+        }
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Sending...';
+        }
 
         try {
             const res = await fetch('/submit_contact', {
@@ -301,14 +314,32 @@ function initContactForm() {
                 body: JSON.stringify(formData)
             });
 
-            const result = await res.json();
-            responseMsg.innerText = result.message;
-            responseMsg.style.color = res.ok ? 'green' : 'red';
+            let result = {};
+            try {
+                result = await res.json();
+            } catch (_) {
+                result = { message: res.ok ? 'Message sent successfully!' : `Server error (${res.status})` };
+            }
 
-            if (res.ok) form.reset();
+            if (responseMsg) {
+                responseMsg.innerText = result.message || (res.ok ? 'Message sent successfully!' : 'Submission failed.');
+                responseMsg.style.color = res.ok ? 'green' : 'red';
+            }
+
+            if (res.ok) {
+                form.reset();
+            }
         } catch (err) {
-            responseMsg.innerText = 'Submission failed. Please try again.';
-            responseMsg.style.color = 'red';
+            console.error('Contact form submission error:', err);
+            if (responseMsg) {
+                responseMsg.innerText = 'Connection error: Unable to reach the server. Please check your connection and try again.';
+                responseMsg.style.color = 'red';
+            }
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalBtnText;
+            }
         }
     });
 }

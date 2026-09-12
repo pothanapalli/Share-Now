@@ -290,37 +290,50 @@ def get_history():
 @app.route('/submit_contact', methods=['POST'])
 def submit_contact():
     if contact_collection is None:
-        return jsonify({"message": "Contact form is currently unavailable."}), 503
+        logger.warning("Contact submission failed: MongoDB collection unavailable")
+        return jsonify({"message": "Contact form is currently unavailable. Database not connected."}), 503
 
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     if not data:
-        return jsonify({"message": "Invalid data"}), 400
+        logger.warning("Contact submission failed: No JSON data received")
+        return jsonify({"message": "Invalid form data received."}), 400
 
-    name = data.get('name', '').strip()
-    phone = data.get('phone', '').strip()
-    email = data.get('email', '').strip()
-    message = data.get('message', '').strip()
+    name = str(data.get('name') or '').strip()
+    phone = str(data.get('phone') or '').strip()
+    email = str(data.get('email') or '').strip()
+    message = str(data.get('message') or '').strip()
 
-    if not all([name, phone, email, message]):
-        return jsonify({"message": "All fields are required"}), 400
+    missing = []
+    if not name: missing.append("Name")
+    if not phone: missing.append("Phone")
+    if not email: missing.append("Email")
+    if not message: missing.append("Message")
+
+    if missing:
+        logger.warning(f"Contact submission missing fields: {missing}")
+        return jsonify({"message": f"Please fill out all fields: {', '.join(missing)} required."}), 400
 
     # Basic email validation
     if '@' not in email or '.' not in email:
-        return jsonify({"message": "Invalid email address"}), 400
+        logger.warning(f"Contact submission invalid email: {email}")
+        return jsonify({"message": "Please enter a valid email address."}), 400
 
     try:
-        contact_collection.insert_one({
+        doc = {
             "name": name,
             "phone": phone,
             "email": email,
-            "message": message
-        })
-        logger.info(f"Contact form submitted by {name} ({email})")
-        return jsonify({"message": "Contact submitted successfully"}), 200
+            "message": message,
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        contact_collection.insert_one(doc)
+        logger.info(f"Contact form submitted successfully by {name} ({email})")
+        return jsonify({"message": "Contact submitted successfully!"}), 200
     except Exception as e:
-        logger.error(f"Contact form error: {e}")
-        return jsonify({"message": "Submission failed. Please try again."}), 500
+        logger.error(f"Contact form database insert error: {e}", exc_info=True)
+        return jsonify({"message": f"Submission failed: {str(e)}"}), 500
+
 
 
 # ---------------------------------------------------------------------------
